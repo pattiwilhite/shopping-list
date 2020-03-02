@@ -1,101 +1,31 @@
-const STORE = [
-  {name: "apples", checked: false},
-  {name: "oranges", checked: false},
-  {name: "milk", checked: true},
-  {name: "bread", checked: false}
-];
-
-function generateItemElement(item, itemIndex, template) {
-  return `
-    <li class="js-item-index-element" data-item-index="${itemIndex}">
-      <span class="shopping-item js-shopping-item ${item.checked ? "shopping-item__checked" : ''}">${item.name}</span>
-      <div class="shopping-item-controls">
-        <button class="shopping-item-toggle js-item-toggle">
-            <span class="button-label">check</span>
-        </button>
-        <button class="shopping-item-delete js-item-delete">
-            <span class="button-label">delete</span>
-        </button>
-      </div>
-    </li>`;
-}
-
-
-function generateShoppingItemsString(shoppingList) {
-  console.log("Generating shopping list element");
-
-  const items = shoppingList.map((item, index) => generateItemElement(item, index));
-  
-  return items.join("");
-}
-
-
-function renderShoppingList() {
-  // render the shopping list in the DOM
-  console.log('`renderShoppingList` ran');
-  const shoppingListItemsString = generateShoppingItemsString(STORE);
-
-  // insert that HTML into the DOM
-  $('.js-shopping-list').html(shoppingListItemsString);
-}
-
-function addItemToShoppingList(itemName) {
-  console.log(`Adding "${itemName}" to shopping list`);
-  STORE.push({name: itemName, checked: false});
-}
-
-function handleNewItemSubmit() {
-  $('#js-shopping-list-form').submit(function(event) {
+$(function () {
+  $("#js-shopping-list-form").on("submit", function (event) {
+    // Prevent default behavior of submit
     event.preventDefault();
-    console.log('`handleNewItemSubmit` ran');
-    const newItemName = $('.js-shopping-list-entry').val();
-    $('.js-shopping-list-entry').val('');
-    addItemToShoppingList(newItemName);
-    renderShoppingList();
+    // Enter item and add the item to the ul with proper classes applied
+    const shoppingItem = $('input[name="shopping-list-entry"]').val();
+    const newClone = $(".container ul li").last().clone();
+    const addedItem = $(".container ul ").last().append(newClone);
+    const addName = $('.container ul li').last().find('.shopping-item').text(shoppingItem);
+
+    //Clear: Add an item field area
+    $('input[name="shopping-list-entry"]').val('');
+
+    // Toggle checked and remove for created items 
+    $('.container ul li').last().find('.shopping-item-toggle').on('click', function (event) {
+      $(this).closest('div').prev().toggleClass('shopping-item__checked');
+    })
+
+    $('.container ul li').last().find('.shopping-item-delete').on('click', function (event) {
+      $(this).closest('div').parent().remove();
+    })
   });
-}
-
-function removeDeletedListItem(itemIndex) {
-  console.log(`Delete removed item from index "${itemIndex}" from shopping list`);
-  STORE.splice(itemIndex, 1);
-}
-//need help understanding the above.
-
-function toggleCheckedForListItem(itemIndex) {
-  console.log("Toggling checked property for item at index " + itemIndex);
-  STORE[itemIndex].checked = !STORE[itemIndex].checked;
-}
-
-function getItemIndexFromElement(item) {
-  const itemIndexString = $(item)
-    .closest('.js-item-index-element')
-    .attr('data-item-index');
-  return parseInt(itemIndexString, 10);
-}
-
-function handleItemCheckClicked() {
-  $('.js-shopping-list').on('click', `.js-item-toggle`, event => {
-    console.log('`handleItemCheckClicked` ran');
-    const itemIndex = getItemIndexFromElement(event.currentTarget);
-    toggleCheckedForListItem(itemIndex);
-    renderShoppingList();
+  // Toggle checked and remove for items already there
+  $('.shopping-item-toggle').on('click', function (event) {
+    $(this).closest('div').prev().toggleClass('shopping-item__checked');
   });
-}
-
-function handleDeleteItemClicked() {
-  $('.js-shopping-list').on('click', `.js-item-delete`, event => {
-    console.log('`handleDeleteItemClicked` ran');
-    const itemIndex = getItemIndexFromElement(event.currentTarget);
-    removeDeletedListItem(itemIndex);
-    renderShoppingList();
+  $('.shopping-item-delete').on('click', function (event) {
+    $(this).closest('div').parent().remove();
   });
-}
 
-function handleShoppingList() {
-  renderShoppingList();
-  handleNewItemSubmit();
-  handleItemCheckClicked();
-  handleDeleteItemClicked();
-}
-
-$(handleShoppingList);
+});
